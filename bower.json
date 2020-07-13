@@ -1,0 +1,21 @@
+{
+  "name": "gulppractice",
+  "description": "",
+  "main": "index.js",
+  "authors": [
+    "amy <c24569667@gmail.com>"
+  ],
+  "license": "ISC",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "^4.5.0",
+    "jquery": "^3.5.1"
+  }
+}
