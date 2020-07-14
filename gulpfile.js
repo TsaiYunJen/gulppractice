@@ -36,9 +36,11 @@ console.log(options);
 
 //gulp-clean
 gulp.task("clean", function () {
-  return gulp.src(["./.tmp", "./public"], {
-    read: false
-  }).pipe($.clean());
+  return gulp
+    .src(["./.tmp", "./public"], {
+      read: false,
+    })
+    .pipe($.clean());
 });
 
 //copy HTML
@@ -70,44 +72,44 @@ gulp.task("sass", function () {
 
   return (
     gulp
-    .src("./source/scss/**/*.scss")
-    .pipe($.plumber())
-    .pipe($.sourcemaps.init())
-    .pipe($.sass().on("error", $.sass.logError))
-    //編譯完成CSS
-    .pipe($.postcss(processors))
-    .pipe($.if(options.env === "production", $.cleanCss()))
-    .pipe($.sourcemaps.write("."))
-    .pipe(gulp.dest("./public/css"))
-    .pipe(browserSync.stream())
+      .src("./source/scss/**/*.scss")
+      .pipe($.plumber())
+      .pipe($.sourcemaps.init())
+      .pipe($.sass().on("error", $.sass.logError))
+      //編譯完成CSS
+      .pipe($.postcss(processors))
+      .pipe($.if(options.env === "production", $.cleanCss()))
+      .pipe($.sourcemaps.write("."))
+      .pipe(gulp.dest("./public/css"))
+      .pipe(browserSync.stream())
   );
 });
 
 //babel
 gulp.task("babel", () =>
   gulp
-  .src("./source/js/**/*.js")
-  .pipe($.sourcemaps.init())
-  .pipe(
-    $.babel({
-      presets: ["@babel/env"],
-    })
-  )
-  .pipe($.concat("all.js"))
-  .pipe(
-    $.if(
-      options.env === "production",
-      $.uglify({
-        //移除console
-        compress: {
-          drop_console: true,
-        },
+    .src("./source/js/**/*.js")
+    .pipe($.sourcemaps.init())
+    .pipe(
+      $.babel({
+        presets: ["@babel/env"],
       })
     )
-  )
-  .pipe($.sourcemaps.write("."))
-  .pipe(gulp.dest("./public/js"))
-  .pipe(browserSync.stream())
+    .pipe($.concat("all.js"))
+    .pipe(
+      $.if(
+        options.env === "production",
+        $.uglify({
+          //移除console
+          compress: {
+            drop_console: true,
+          },
+        })
+      )
+    )
+    .pipe($.sourcemaps.write("."))
+    .pipe(gulp.dest("./public/js"))
+    .pipe(browserSync.stream())
 );
 
 //main-bower-files
@@ -153,6 +155,11 @@ gulp.task("watch", function () {
   gulp.watch("./source/js/**/*.js", gulp.series("babel"));
 });
 
+//gulp-gh-pages 快速產生一個public的分支上傳
+gulp.task("deploy", function () {
+  return gulp.src("./public/**/*").pipe($.ghPages());
+});
+
 //gulp-sequence 正式發布不需要browser-sync跟watch
 gulp.task(
   "build",
@@ -178,4 +185,3 @@ gulp.task(
 //npm i --only=dev  只安裝開發環境
 //npm i 安裝全部環境
 //npm prune --prod 只保留正式環境
-//啊啊啊啊
