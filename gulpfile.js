@@ -39,6 +39,7 @@ gulp.task("clean", function () {
   return gulp
     .src(["./.tmp", "./public"], {
       read: false,
+      allowEmpty: true
     })
     .pipe($.clean());
 });
@@ -84,44 +85,49 @@ gulp.task("sass", function () {
 
   return (
     gulp
-      .src("./source/scss/**/*.scss")
-      .pipe($.plumber())
-      .pipe($.sourcemaps.init())
-      .pipe($.sass().on("error", $.sass.logError))
-      //編譯完成CSS
-      .pipe($.postcss(processors))
-      .pipe($.if(options.env === "production", $.cleanCss()))
-      .pipe($.sourcemaps.write("."))
-      .pipe(gulp.dest("./public/css"))
-      .pipe(browserSync.stream())
+    .src("./source/scss/**/*.scss")
+    .pipe($.plumber())
+    .pipe($.sourcemaps.init())
+    .pipe($.sass({
+      outputStyle: 'nested',
+      //將外部sass載入
+      includePaths: ['./node_modules\bootstrap\scss']
+    }))
+    .pipe($.sass().on("error", $.sass.logError))
+    //編譯完成CSS
+    .pipe($.postcss(processors))
+    .pipe($.if(options.env === "production", $.cleanCss()))
+    .pipe($.sourcemaps.write("."))
+    .pipe(gulp.dest("./public/css"))
+    .pipe(browserSync.stream())
   );
 });
 
 //babel
 gulp.task("babel", () =>
   gulp
-    .src("./source/js/**/*.js")
-    .pipe($.sourcemaps.init())
-    .pipe(
-      $.babel({
-        presets: ["@babel/env"],
+  .src("./source/js/**/*.js")
+  .pipe($.sourcemaps.init())
+  .pipe(
+    $.babel({
+      presets: ["@babel/env"],
+    })
+  )
+  .pipe($.concat("all.js"))
+  .pipe(
+    $.if(
+      options.env === "production",
+      $.uglify({
+        //移除console
+        compress: {
+          drop_console: true,
+        },
       })
     )
-    .pipe($.concat("all.js"))
-    .pipe(
-      $.if(
-        options.env === "production",
-        $.uglify({
-          //移除console
-          compress: {
-            drop_console: true,
-          },
-        })
-      )
-    )
-    .pipe($.sourcemaps.write("."))
-    .pipe(gulp.dest("./public/js"))
-    .pipe(browserSync.stream())
+  )
+  .pipe($.sourcemaps.write("."))
+  .pipe(gulp.dest("./public/js"))
+  .pipe(browserSync.stream())
 );
 
 //main-bower-files
@@ -135,7 +141,7 @@ gulp.task(
   "vendorJs",
   gulp.series("bower", function () {
     return gulp
-      .src("./.tmp/vendors/**/**.js")
+      .src(["./.tmp/vendors/**/**.js", "./node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"])
       .pipe($.concat("vendors.js"))
       .pipe($.if(options.env === "production", $.uglify()))
       .pipe(gulp.dest("./public/js"));
@@ -143,14 +149,14 @@ gulp.task(
 );
 
 //browser-sync 建立一個伺服器
-gulp.task("browser-sync", function () {
-  browserSync.init({
-    server: {
-      baseDir: "./public",
-    },
-    reloadDebounce: 2000, //重新整理間隔需超過2秒
-  });
-});
+// gulp.task("browser-sync", function () {
+//   browserSync.init({
+//     server: {
+//       baseDir: "./public",
+//     },
+//     reloadDebounce: 2000, //重新整理間隔需超過2秒
+//   });
+// });
 //gulp-imagemin
 gulp.task("image-min", function () {
   return gulp
@@ -161,11 +167,11 @@ gulp.task("image-min", function () {
 
 //監控scss有改變時
 //在gulp 4.x 傳遞函數 gulp.series("任務名稱")
-gulp.task("watch", function () {
-  gulp.watch("./source/scss/**/*.scss", gulp.series("sass"));
-  gulp.watch("./source/**/*.jade", gulp.series("jade"));
-  gulp.watch("./source/js/**/*.js", gulp.series("babel"));
-});
+// gulp.task("watch", function () {
+//   gulp.watch("./source/scss/**/*.scss", gulp.series("sass"));
+//   gulp.watch("./source/**/*.jade", gulp.series("jade"));
+//   gulp.watch("./source/js/**/*.js", gulp.series("babel"));
+// });
 
 //gulp-gh-pages 快速產生一個public的分支上傳
 gulp.task("deploy", function () {
@@ -173,25 +179,24 @@ gulp.task("deploy", function () {
 });
 
 //gulp-sequence 正式發布不需要browser-sync跟watch
-gulp.task(
-  "build",
-  gulp.series("clean", "jade", "sass", "babel", "vendorJs", "image-min")
-);
+gulp.task("build", gulp.series("clean", "bower", "vendorJs", gulp.parallel("jade", "sass", "babel", "image-min")));
 
 //合併任務
 //預設default不需輸入task名稱
-gulp.task(
-  "default",
-  gulp.series(
-    "jade",
-    "sass",
-    "babel",
-    "vendorJs",
-    "image-min",
-    "browser-sync",
-    "watch"
-  )
-);
+gulp.task("default", gulp.series("clean", "bower", "vendorJs", gulp.parallel("jade", "sass", "babel", "image-min"),
+  function (done) {
+    browserSync.init({
+      server: {
+        baseDir: "./public",
+      },
+      reloadDebounce: 2000, //重新整理間隔需超過2秒
+    });
+
+    gulp.watch("./source/scss/**/*.scss", gulp.series("sass"));
+    gulp.watch("./source/**/*.jade", gulp.series("jade"));
+    gulp.watch("./source/js/**/*.js", gulp.series("babel"));
+    done();
+  }));
 
 //npm i --only=prod 只安裝正式環境
 //npm i --only=dev  只安裝開發環境
