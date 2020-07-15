@@ -1,0 +1,17 @@
+extends layout.jade
+
+block navbar
+ - var path = "list.html";
+ include partials/navbar.jade
+
+block content
+ hr
+ div.container
+  .card-group
+   each item in khData.user
+    .card.border-dark(style='width: 18rem;')
+     .card-header #{item.name}
+     .card-body
+       h5.card-title #{item.id}
+       p.card-text #{item.desc}
+       p Lorem ipsum dolor sit amet consectetur adipisicing elit. Provident reiciendis esse enim, error reprehenderit sit perspiciatis sint dolorem libero sapiente? Illo maiores unde numquam quae eius quis molestiae corrupti suscipit.

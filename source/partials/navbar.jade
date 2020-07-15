@@ -1,0 +1,15 @@
+mixin link(url, name)
+ if(path === url)
+  a.nav-item.nav-link.active(href='#{url}') #{name}
+ else
+  a.nav-item.nav-link(href='#{url}') #{name}
+  
+
+nav.navbar.navbar-expand-lg.navbar-light.bg-light
+  a.navbar-brand(href='#') Navbar
+  button.navbar-toggler(data-target='#navbarNavAltMarkup', data-toggle='collapse', type='button', aria-controls='navbarNavAltMarkup', aria-expanded='false', aria-label='Toggle navigation')
+    span.navbar-toggler-icon
+  #navbarNavAltMarkup.collapse.navbar-collapse
+    .navbar-nav
+      each item in menu.list
+       +link(item.url, item.name)

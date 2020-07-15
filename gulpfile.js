@@ -56,6 +56,18 @@ gulp.task("jade", function () {
     .src("./source/**/*.jade")
     .pipe($.plumber())
     .pipe(
+      $.data(function () {
+        var khData = require("./source/data/data.json");
+        var menu = require("./source/data/menu.json");
+        var source = {
+          khData: khData,
+          menu: menu,
+        };
+        console.log("jade", source);
+        return source;
+      })
+    )
+    .pipe(
       $.jade({
         // locals: YOUR_LOCALS
         pretty: true,
@@ -141,7 +153,7 @@ gulp.task("browser-sync", function () {
 });
 //gulp-imagemin
 gulp.task("image-min", function () {
-  gulp
+  return gulp
     .src("./source/images/*")
     .pipe($.if(options.env === "production", $.imagemin()))
     .pipe(gulp.dest("./public/images"));
