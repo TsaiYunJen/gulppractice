@@ -31,6 +31,6 @@
     "gulp-sourcemaps": "^2.6.5",
     "gulp-uglify": "^3.0.2",
     "main-bower-files": "^2.13.3",
-    "minimist": "^1.2.5"
+    "minimist": "^1.2.6"
   }
 }
